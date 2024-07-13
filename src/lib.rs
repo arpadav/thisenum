@@ -68,14 +68,18 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     // extract the type
     // --------------------------------------------------
-    let (type_name, deref) = match get_type(&input.attrs) {
-        (Some(type_name), deref) => (type_name, deref),
-        (None, _) => panic!("Missing #[armtype = ...] attribute, expected for `EnumConst`"),
+    let (type_name, deref) = match get_type_deref(&input.attrs) {
+        Some((type_name, deref)) => (type_name, deref),
+        None => panic!("Missing #[armtype = ...] attribute, required for `EnumConst`-derived enum"),
+    };
+    let type_name_raw = match get_type(&input.attrs) {
+        Some(type_name_raw) => type_name_raw,
+        None => panic!("Missing #[armtype = ...] attribute, required for `EnumConst`-derived enum"),
     };
     // --------------------------------------------------
     // generate the output tokens and return
     // --------------------------------------------------
-    let variant_code = variants
+    let variant_match_arms = variants
         .iter()
         .map(|variant| {
             let variant_name = &variant.ident;
@@ -89,6 +93,10 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
             }
         }
     );
+    let variant_par_eq = match deref {
+        true => quote! { &self.value() == other },
+        false => quote! { self.value() == other },
+    };
     let expanded = quote! {
         impl #enum_name {
             #[inline]
@@ -100,14 +108,14 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
             #[doc = concat!("* [`&'static ", stringify!(#type_name), "`]")]
             pub fn value(&self) -> &'static #type_name {
                 match self {
-                    #( #variant_code )*
+                    #( #variant_match_arms )*
                 }
             }
         }
-        impl ::std::cmp::PartialEq<#type_name> for #enum_name {
+        impl ::std::cmp::PartialEq<#type_name_raw> for #enum_name {
             #[inline]
-            fn eq(&self, other: &#type_name) -> bool {
-                self.value() == other
+            fn eq(&self, other: &#type_name_raw) -> bool {
+                #variant_par_eq
             }
         }
     };
@@ -169,29 +177,26 @@ pub fn enum_const_any(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     let variant_code = variants.iter().map(|variant| {
         let variant_name = &variant.ident;
-        let variant_type = get_type(&variant.attrs);
-        if variant_type.0.is_none() {
-            panic!("Missing #[armtype = ...] attribute, expected for `EnumConstAny`");
-        }
-        let variant_type = variant_type.0.unwrap();
-        match get_val(&variant.attrs) {
-            Ok(value) => quote! {
+        match (get_type(&variant.attrs), get_val(&variant.attrs)) {
+            (Some(typ), Ok(value)) => quote! {
                 #enum_name::#variant_name => {
-                    // if ::std::any::TypeId::of::<T>() != ::std::any::TypeId::of::<#variant_type>() {
-                    let val: dyn ::std::any::Any = #value;
-                    return val.downcast_ref::<&'static T>();
-                    // }
-                    // Some(&#value as &'static T)
-                    // Some(&#value as &T)
+                    let val: &dyn ::std::any::Any = &(#value as #typ);
+                    val.downcast_ref::<T>()
+                },
+
+            },
+            (None, Ok(value)) => quote! {
+                #enum_name::#variant_name => {
+                    let val: &dyn ::std::any::Any = &#value;
+                    val.downcast_ref::<T>()
                 },
             },
-            Err(_) => quote! { #enum_name::#variant_name => None, },
+            (_, Err(_)) => quote! { #enum_name::#variant_name => None, },
         }
     });
     let expanded = quote! {
         impl #enum_name {
-            // pub fn value<T: 'static>(&self) -> Option<&(dyn ::std::any::Any + 'static)> {
-            pub fn value<T: 'static>(&self) -> Option<&'static T> {
+            pub fn value<T: 'static>(&self) -> Option<&T> {
                 match self {
                     #( #variant_code )*
                     _ => None,
@@ -263,6 +268,9 @@ fn get_val(attrs: &[Attribute]) -> Result<proc_macro2::TokenStream, syn::Error> 
 }
 
 /// Helper function to extract the type from the [`Attribute`], aka `#[armtype(<type>)]`
+/// 
+/// Will indicate whether or not the type should be dereferenced or not. Useful
+/// for the [`EnumConst`] macro
 ///
 /// # Input
 ///
@@ -272,14 +280,18 @@ fn get_val(attrs: &[Attribute]) -> Result<proc_macro2::TokenStream, syn::Error> 
 ///
 /// # Output
 ///
-/// * 0 - [`Type`] containing the type `<type>`, or [`None`] if the attribute is not present
-/// * 1 - There is an additional flag that indicates if the type should be a dereferenced or not
-fn get_type(attrs: &[Attribute]) -> (Option<Type>, bool) {
+/// [`None`] if the attribute is not present / invalid
+/// 
+/// Otherwise a tuple:
+/// 
+/// * 0 - [`Type`] containing the type `<type>` (already de-referenced)
+/// * 1 - An additional flag that indicates if the type has been de-referenced
+fn get_type_deref(attrs: &[Attribute]) -> Option<(Type, bool)> {
     for attr in attrs {
         if !attr.path.is_ident("armtype") { continue; }
         let tokens = match attr.parse_args::<proc_macro2::TokenStream>() {
             Ok(tokens) => tokens,
-            Err(_) => return (None, false),
+            Err(_) => return None,
         };
         let deref = tokens
             .to_string()
@@ -293,7 +305,42 @@ fn get_type(attrs: &[Attribute]) -> (Option<Type>, bool) {
             }
             false => tokens,
         };
-        return (syn::parse2::<Type>(tokens).ok(), deref);
+        return match syn::parse2::<Type>(tokens).ok() {
+            Some(type_name) => Some((type_name, deref)),
+            None => None
+        }
     }
-    (None, false)
+    None
+}
+
+/// Helper function to extract the type from the [`Attribute`], aka `#[armtype(<type>)]`
+/// 
+/// Will return the raw [`Type`]. Useful for the [`EnumConst`] and the [`EnumConstAny`]
+/// macros
+///
+/// # Input
+///
+/// ```text
+/// #[armtype(<type>)]
+/// ```
+///
+/// # Output
+///
+/// [`None`] if the attribute is not present / invalid
+/// 
+/// Otherwise [`Some<Type>`] containing the type `<type>`
+fn get_type(attrs: &[Attribute]) -> Option<Type> {
+    for attr in attrs {
+        if !attr.path.is_ident("armtype") { continue; }
+        let tokens = match attr.parse_args::<proc_macro2::TokenStream>() {
+            Ok(tokens) => tokens,
+            Err(_) => return None,
+        };
+        return syn::parse2::<Type>(
+            tokens
+            .into_iter()
+            .collect::<proc_macro2::TokenStream>()
+        ).ok()
+    }
+    None
 }
