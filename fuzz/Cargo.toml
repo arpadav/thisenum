@@ -1,0 +1,26 @@
+[package]
+name = "enum-const-fuzz"
+version = "0.0.0"
+authors = ["Arpad Voros <arpadav@gmail.com>"]
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+enum-const = { path = ".." }
+arbitrary = { version = "1", features = ["derive"] }
+
+[[bin]]
+name = "enum_const"
+path = "fuzz_targets/enum_const.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "enum_const_each"
+path = "fuzz_targets/enum_const_each.rs"
+test = false
+doc = false
