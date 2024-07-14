@@ -1,3 +1,62 @@
+//! # enum-const
+//! 
+//! Assign constant literals to enum arms in Rust! What fun!
+//! 
+//! ```rust
+//! use enum_const::EnumConst;
+//! 
+//! #[derive(EnumConst, Debug)]
+//! #[armtype(&[u8])]
+//! /// https://exiftool.org/TagNames/EXIF.html
+//! enum ExifTag {
+//!     // ...
+//!     #[value = b"\x01\x00"]
+//!     ImageWidth,
+//!     #[value = b"\x01\x01"]
+//!     ImageHeight,
+//!     #[value = b"\x01\x02"]
+//!     BitsPerSamole,
+//!     #[value = b"\x01\x03"]
+//!     Compression,
+//!     #[value = b"\x01\x06"]
+//!     PhotometricInterpretation,
+//!     // ...
+//! }
+//! 
+//! assert_eq!(ExifTag::ImageWidth.value(), b"\x01\x00");
+//! assert_eq!(ExifTag::ImageWidth, b"\x01\x00");
+//! ```
+//! 
+//! If each arm is a different type, this is still possible using `EnumConstEach`:
+//! 
+//! ```rust
+//! use enum_const::EnumConstEach;
+//! 
+//! #[derive(EnumConstEach, Debug)]
+//! enum CustomEnum {
+//!     #[armtype(&[u8])]
+//!     #[value = b"\x01\x00"]
+//!     A,
+//!     // `armtype` is not required, type is inferred
+//!     #[value = "foo"]
+//!     B,
+//!     #[armtype(f32)]
+//!     #[value = 3.14]
+//!     C,
+//! }
+//! 
+//! assert_eq!(CustomEnum::A.value::<&[u8]>().unwrap(), b"\x01\x00");
+//! assert!(CustomEnum::B.value::<&str>().is_some());
+//! assert_eq!(CustomEnum::B.value::<&str>().unwrap(), &"foo");
+//! assert_eq!(CustomEnum::B.value::<&str>(), Some("foo").as_ref());
+//! assert_eq!(CustomEnum::C.value::<f32>().unwrap(), 3.14);
+//! // or on failure
+//! assert!(CustomEnum::C.value::<i32>().is_none());
+//! ```
+//! 
+//! ## License
+//! 
+//! `enum-const` is released under the [MIT License](LICENSE) [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT).
 // --------------------------------------------------
 // external
 // --------------------------------------------------
@@ -20,7 +79,7 @@ use proc_macro::TokenStream;
 
 #[derive(Error, Debug)]
 /// All errors that can occur while deriving [`EnumConst`]
-/// or [`EnumConstAny`]
+/// or [`EnumConstEach`]
 enum Error {
     #[error("`{0}` can only be derived for enums")]
     DeriveForNonEnum(String),
@@ -173,7 +232,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_derive(EnumConstAny, attributes(value, armtype))]
+#[proc_macro_derive(EnumConstEach, attributes(value, armtype))]
 /// Add's constants of any type to each arm of an enum
 /// 
 /// To get the value, the type must be explicitly passed
@@ -198,9 +257,9 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 /// # Example
 /// 
 /// ```
-/// use enum_const::EnumConstAny;
+/// use enum_const::EnumConstEach;
 /// 
-/// #[derive(EnumConstAny, Debug)]
+/// #[derive(EnumConstEach, Debug)]
 /// enum MyEnum {
 ///     #[armtype(u8)]
 ///     #[value = 0xAA]
@@ -209,7 +268,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 ///     B,
 /// }
 /// 
-/// #[derive(EnumConstAny, Debug)]
+/// #[derive(EnumConstEach, Debug)]
 /// enum Tags {
 ///     #[value = b"\x00\x01"]
 ///     Key,
@@ -222,7 +281,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 /// }
 /// 
 /// fn main() {
-///     // [`EnumConstAny`] examples
+///     // [`EnumConstEach`] examples
 ///     assert!(MyEnum::A.value::<u8>().is_some());
 ///     assert!(MyEnum::A.value::<Vec<f32>>().is_none());
 ///     assert!(MyEnum::B.value::<u8>().is_none());
@@ -247,8 +306,8 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 ///     assert!(*Tags::Length.value::<u16>().unwrap() as u32 == 24250);
 /// }
 /// ```
-pub fn enum_const_any(input: TokenStream) -> TokenStream {
-    let name = "EnumConstAny";
+pub fn enum_const_each(input: TokenStream) -> TokenStream {
+    let name = "EnumConstEach";
     let input = parse_macro_input!(input as DeriveInput);
     // --------------------------------------------------
     // extract the name, variants, and values
@@ -413,7 +472,7 @@ fn get_deref_type(attrs: &[Attribute]) -> Option<(Type, bool)> {
 
 /// Helper function to extract the type from the [`Attribute`], aka `#[armtype(<type>)]`
 /// 
-/// Will return the raw [`Type`]. Useful for the [`EnumConst`] and the [`EnumConstAny`]
+/// Will return the raw [`Type`]. Useful for the [`EnumConst`] and the [`EnumConstEach`]
 /// macros
 ///
 /// # Input
