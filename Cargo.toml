@@ -1,11 +1,11 @@
 [package]
-name = "enum-const"
+name = "thisenum"
 version = "0.1.0"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 license = "MIT"
 description = "Assign constant literals to enum arms."
-repository = "https://github.com/arpadav/enum-const"
-documentation = "https://docs.rs/enum-const"
+repository = "https://github.com/arpadav/thisenum"
+documentation = "https://docs.rs/thisenum"
 readme = "README.md"
 keywords = ["enum", "const", "literals", "macro", "parsing"]
 categories = ["parsing", "memory-management"]

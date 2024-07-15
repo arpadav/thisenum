@@ -1,9 +1,9 @@
-use enum_const::{
-    EnumConst,
-    EnumConstEach,
+use thisenum::{
+    Const,
+    ConstEach,
 };
 
-#[derive(Debug, EnumConst)]
+#[derive(Debug, Const)]
 #[armtype(u8)]
 enum TestU8 {
     #[value = 0x7f]
@@ -12,7 +12,7 @@ enum TestU8 {
     Arm2,
 }
 
-#[derive(Debug, EnumConst)]
+#[derive(Debug, Const)]
 #[armtype(&str)]
 enum TestStr {
     #[value = "this"]
@@ -21,7 +21,7 @@ enum TestStr {
     Arm2,
 }
 
-#[derive(Debug, EnumConst)]
+#[derive(Debug, Const)]
 #[armtype(&[u8])]
 enum TestU8Slice4 {
     #[value = b"\x7F\x7F\x7F\x7F\x67"]
@@ -30,7 +30,7 @@ enum TestU8Slice4 {
     Arm2,
 }
 
-// #[derive(EnumConst)]
+// #[derive(Const)]
 // #[arm_type(Vec<usize>)]
 // enum TestVecu8 {
 //     #[value = vec![1, 2, 3]]
@@ -39,7 +39,7 @@ enum TestU8Slice4 {
 //     Arm2,
 // }
 
-#[derive(Debug, EnumConstEach)]
+#[derive(Debug, ConstEach)]
 enum TestStrAny {
     #[armtype(u8)]
     #[value = 0xAA]
@@ -53,22 +53,22 @@ fn main() {
     // main2();
     main3();
 
-    // // EnumConst example
+    // // Const example
     // assert_eq!(TestU8::Arm1.value(), &0x7F);
     // assert_eq!(TestU8::Arm1, 0x7F as u8);
     // assert_eq!(TestU8::Arm2.value(), &0x3B);
 
-    // // EnumConst example 2
+    // // Const example 2
     // assert_eq!(TestStr::Arm1.value(), "this");
     // assert_eq!(TestStr::Arm1, "this");
     // assert_eq!(TestStr::Arm2.value(), "that");
 
-    // // EnumConst example 3
+    // // Const example 3
     // assert_eq!(TestU8Slice4::Arm1.value(), b"\x7F\x7F\x7F\x7F\x67");
     // assert_eq!(TestU8Slice4::Arm2.value(), b"\x3B\x3B\x3B\x3B");
     // assert_eq!(TestU8Slice4::Arm1, b"\x7F\x7F\x7F\x7F\x67" as &[u8]);
 
-    // // EnumConstEach example
+    // // ConstEach example
     // assert!(TestStrAny::Arm1.value::<u8>().is_some());
     // let val = TestStrAny::Arm1.value::<u8>().unwrap();
     // println!("TestStrAny::Arm1.value() = {:?}", val);
@@ -79,7 +79,7 @@ fn main() {
     // assert!(TestStrAny::Arm2.value::<&str>().is_some());
 }
 
-// #[derive(EnumConstEach, Debug)]
+// #[derive(ConstEach, Debug)]
 // enum MyEnum {
 //     #[armtype(u8)]
 //     #[value = 0xAA]
@@ -88,7 +88,7 @@ fn main() {
 //     B,
 // }
 
-// #[derive(EnumConstEach, Debug)]
+// #[derive(ConstEach, Debug)]
 // enum Tags {
 //     #[value = b"\x00\x01"]
 //     Key,
@@ -101,7 +101,7 @@ fn main() {
 // }
 
 // fn main2() {
-//     // [`EnumConstEach`] examples
+//     // [`ConstEach`] examples
 //     assert!(MyEnum::A.value::<u8>().is_some());
 //     assert!(MyEnum::A.value::<Vec<f32>>().is_none());
 //     assert!(MyEnum::B.value::<u8>().is_none());
@@ -125,9 +125,9 @@ fn main() {
 //     assert!(*Tags::Length.value::<u16>().unwrap() as u32 == 24250);
 // }
 
-// use enum_const::EnumConst;
+// use enum_const::Const;
 
-#[derive(EnumConst, Debug)]
+#[derive(Const, Debug)]
 #[armtype(i32)]
 enum MyEnum {
     #[value = 0]
@@ -136,7 +136,7 @@ enum MyEnum {
     B,
 }
 
-#[derive(EnumConst, Debug)]
+#[derive(Const, Debug)]
 #[armtype(&[u8])]
 enum Tags {
     #[value = b"\x00\x01\x7f"]
@@ -147,9 +147,9 @@ enum Tags {
     Data,
 }
 
-// use enum_const::EnumConst;
+// use enum_const::Const;
 
-#[derive(EnumConst, Debug)]
+#[derive(Const, Debug)]
 #[armtype(&[u8])]
 /// https://exiftool.org/TagNames/EXIF.html
 enum ExifTag {
@@ -167,7 +167,7 @@ enum ExifTag {
     // ...
 }
 
-#[derive(EnumConstEach, Debug)]
+#[derive(ConstEach, Debug)]
 enum CustomEnum {
     #[armtype(&[u8])]
     #[value = b"\x01\x00"]

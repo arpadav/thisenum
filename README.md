@@ -1,16 +1,16 @@
-# enum-const
+# thisenum
 
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Crates.io Version](https://img.shields.io/crates/v/enum-const.svg)](https://crates.io/crates/enum-const)
-<!-- [![Latest Release](https://img.shields.io/github/v/release/arpadav/enum-const)](https://github.com/arpadav/enum-const) -->
-<!-- [![Coverage Status](https://coveralls.io/repos/github/arpadav/enum-const/badge.svg?branch=main)](https://coveralls.io/github/arpadav/enum-const?branch=main) -->
+[![Crates.io Version](https://img.shields.io/crates/v/thisenum.svg)](https://crates.io/crates/thisenum)
+<!-- [![Latest Release](https://img.shields.io/github/v/release/arpadav/thisenum)](https://github.com/arpadav/thisenum) -->
+<!-- [![Coverage Status](https://coveralls.io/repos/github/arpadav/thisenum/badge.svg?branch=main)](https://coveralls.io/github/arpadav/thisenum?branch=main) -->
 
 Assign constant literals to enum arms in Rust! What fun!
 
 ```rust
-use enum_const::EnumConst;
+use thisenum::Const;
 
-#[derive(EnumConst, Debug)]
+#[derive(Const, Debug)]
 #[armtype(&[u8])]
 /// https://exiftool.org/TagNames/EXIF.html
 enum ExifTag {
@@ -32,12 +32,12 @@ assert_eq!(ExifTag::ImageWidth.value(), b"\x01\x00");
 assert_eq!(ExifTag::ImageWidth, b"\x01\x00");
 ```
 
-If each arm is a different type, this is still possible using `EnumConstEach`:
+If each arm is a different type, this is still possible using `ConstEach`:
 
 ```rust
-use enum_const::EnumConstEach;
+use thisenum::ConstEach;
 
-#[derive(EnumConstEach, Debug)]
+#[derive(ConstEach, Debug)]
 enum CustomEnum {
     #[armtype(&[u8])]
     #[value = b"\x01\x00"]
@@ -61,4 +61,4 @@ assert!(CustomEnum::C.value::<i32>().is_none());
 
 ## License
 
-`enum-const` is released under the [MIT License](LICENSE) [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT).
+`thisenum` is released under the [MIT License](LICENSE) [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT).

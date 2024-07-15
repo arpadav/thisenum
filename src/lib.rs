@@ -3,9 +3,9 @@
 //! Assign constant literals to enum arms in Rust! What fun!
 //! 
 //! ```rust
-//! use enum_const::EnumConst;
+//! use thisenum::Const;
 //! 
-//! #[derive(EnumConst, Debug)]
+//! #[derive(Const, Debug)]
 //! #[armtype(&[u8])]
 //! /// https://exiftool.org/TagNames/EXIF.html
 //! enum ExifTag {
@@ -27,12 +27,12 @@
 //! assert_eq!(ExifTag::ImageWidth, b"\x01\x00");
 //! ```
 //! 
-//! If each arm is a different type, this is still possible using `EnumConstEach`:
+//! If each arm is a different type, this is still possible using `ConstEach`:
 //! 
 //! ```rust
-//! use enum_const::EnumConstEach;
+//! use thisenum::ConstEach;
 //! 
-//! #[derive(EnumConstEach, Debug)]
+//! #[derive(ConstEach, Debug)]
 //! enum CustomEnum {
 //!     #[armtype(&[u8])]
 //!     #[value = b"\x01\x00"]
@@ -78,8 +78,8 @@ use thiserror::Error;
 use proc_macro::TokenStream;
 
 #[derive(Error, Debug)]
-/// All errors that can occur while deriving [`EnumConst`]
-/// or [`EnumConstEach`]
+/// All errors that can occur while deriving [`Const`]
+/// or [`ConstEach`]
 enum Error {
     #[error("`{0}` can only be derived for enums")]
     DeriveForNonEnum(String),
@@ -91,7 +91,7 @@ enum Error {
     NonLiteralValue,
 }
 
-#[proc_macro_derive(EnumConst, attributes(value, armtype))]
+#[proc_macro_derive(Const, attributes(value, armtype))]
 /// Add's constants to each arm of an enum
 /// 
 /// * To get the value as a reference, call the function [`<enum_name>::value`]
@@ -108,9 +108,9 @@ enum Error {
 /// # Example
 /// 
 /// ```
-/// use enum_const::EnumConst;
+/// use thisenum::Const;
 /// 
-/// #[derive(EnumConst, Debug)]
+/// #[derive(Const, Debug)]
 /// #[armtype(i32)]
 /// enum MyEnum {
 ///     #[value = 0]
@@ -119,7 +119,7 @@ enum Error {
 ///     B,
 /// }
 /// 
-/// #[derive(EnumConst, Debug)]
+/// #[derive(Const, Debug)]
 /// #[armtype(&[u8])]
 /// enum Tags {
 ///     #[value = b"\x00\x01\x7f"]
@@ -144,8 +144,8 @@ enum Error {
 ///     assert_eq!(Tags::Length, b"\xba\x5e");
 /// }
 /// ```
-pub fn enum_const(input: TokenStream) -> TokenStream {
-    let name = "EnumConst";
+pub fn thisenum_const(input: TokenStream) -> TokenStream {
+    let name = "Const";
     let input = parse_macro_input!(input as DeriveInput);
     // --------------------------------------------------
     // extract the name, variants, and values
@@ -211,7 +211,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
         impl #enum_name {
             #[inline]
             /// Returns the value of the enum variant
-            /// defined by [`EnumConst`]
+            /// defined by [`Const`]
             /// 
             /// # Return
             /// 
@@ -232,7 +232,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_derive(EnumConstEach, attributes(value, armtype))]
+#[proc_macro_derive(ConstEach, attributes(value, armtype))]
 /// Add's constants of any type to each arm of an enum
 /// 
 /// To get the value, the type must be explicitly passed
@@ -242,7 +242,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 /// is fairly strict. Upon failure, it will return [`None`].
 /// 
 /// * To get the value as a reference, call the function [`<enum_name>::value`]
-/// * Unlike [`EnumConst`], this macro does not enable direct comparison
+/// * Unlike [`Const`], this macro does not enable direct comparison
 ///   using [`PartialEq`].
 /// 
 /// The `#[armtype = ...]` attribute is **NOT*** required for this macro to function, 
@@ -257,9 +257,9 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 /// # Example
 /// 
 /// ```
-/// use enum_const::EnumConstEach;
+/// use thisenum::ConstEach;
 /// 
-/// #[derive(EnumConstEach, Debug)]
+/// #[derive(ConstEach, Debug)]
 /// enum MyEnum {
 ///     #[armtype(u8)]
 ///     #[value = 0xAA]
@@ -268,7 +268,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 ///     B,
 /// }
 /// 
-/// #[derive(EnumConstEach, Debug)]
+/// #[derive(ConstEach, Debug)]
 /// enum Tags {
 ///     #[value = b"\x00\x01"]
 ///     Key,
@@ -281,7 +281,7 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 /// }
 /// 
 /// fn main() {
-///     // [`EnumConstEach`] examples
+///     // [`ConstEach`] examples
 ///     assert!(MyEnum::A.value::<u8>().is_some());
 ///     assert!(MyEnum::A.value::<Vec<f32>>().is_none());
 ///     assert!(MyEnum::B.value::<u8>().is_none());
@@ -306,8 +306,8 @@ pub fn enum_const(input: TokenStream) -> TokenStream {
 ///     assert!(*Tags::Length.value::<u16>().unwrap() as u32 == 24250);
 /// }
 /// ```
-pub fn enum_const_each(input: TokenStream) -> TokenStream {
-    let name = "EnumConstEach";
+pub fn thisenum_const_each(input: TokenStream) -> TokenStream {
+    let name = "ConstEach";
     let input = parse_macro_input!(input as DeriveInput);
     // --------------------------------------------------
     // extract the name, variants, and values
@@ -427,7 +427,7 @@ fn get_val(name: String, attrs: &[Attribute]) -> Result<proc_macro2::TokenStream
 /// Helper function to extract the type from the [`Attribute`], aka `#[armtype(<type>)]`
 /// 
 /// Will indicate whether or not the type should be dereferenced or not. Useful
-/// for the [`EnumConst`] macro
+/// for the [`Const`] macro
 ///
 /// # Input
 ///
@@ -472,7 +472,7 @@ fn get_deref_type(attrs: &[Attribute]) -> Option<(Type, bool)> {
 
 /// Helper function to extract the type from the [`Attribute`], aka `#[armtype(<type>)]`
 /// 
-/// Will return the raw [`Type`]. Useful for the [`EnumConst`] and the [`EnumConstEach`]
+/// Will return the raw [`Type`]. Useful for the [`Const`] and the [`ConstEach`]
 /// macros
 ///
 /// # Input
