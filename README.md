@@ -7,7 +7,7 @@
 
 The simplest way to assign constant literals to enum arms in Rust! What fun!
 
-Please also see: [enum-assoc](https://docs.rs/enum-assoc/latest/enum_assoc/), which is a more robust alternative.
+Please also see [enum-assoc](https://docs.rs/enum-assoc/latest/enum_assoc/), which is a more robust alternative.
 
 ```rust
 use thisenum::Const;
