@@ -5,7 +5,9 @@
 <!-- [![Latest Release](https://img.shields.io/github/v/release/arpadav/thisenum)](https://github.com/arpadav/thisenum) -->
 <!-- [![Coverage Status](https://coveralls.io/repos/github/arpadav/thisenum/badge.svg?branch=main)](https://coveralls.io/github/arpadav/thisenum?branch=main) -->
 
-Assign constant literals to enum arms in Rust! What fun!
+The simplest way to assign constant literals to enum arms in Rust! What fun!
+
+Please also see: [enum-assoc](https://docs.rs/enum-assoc/latest/enum_assoc/), which is a more robust alternative.
 
 ```rust
 use thisenum::Const;
