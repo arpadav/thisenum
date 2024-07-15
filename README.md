@@ -56,7 +56,7 @@ assert_eq!(CustomEnum::A.value::<&[u8]>().unwrap(), b"\x01\x00");
 assert!(CustomEnum::B.value::<&str>().is_some());
 assert_eq!(CustomEnum::B.value::<&str>().unwrap(), &"foo");
 assert_eq!(CustomEnum::B.value::<&str>(), Some("foo").as_ref());
-assert_eq!(CustomEnum::C.value::<f32>().unwrap(), 3.14);
+assert_eq!(CustomEnum::C.value::<f32>().unwrap(), &3.14);
 // or on failure
 assert!(CustomEnum::C.value::<i32>().is_none());
 ```
