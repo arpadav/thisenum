@@ -1,5 +1,5 @@
 [package]
-name = "enum-const-fuzz"
+name = "thisenum-fuzz"
 version = "0.0.0"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 edition = "2021"
@@ -10,17 +10,17 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-enum-const = { path = ".." }
+thisenum = { path = ".." }
 arbitrary = { version = "1", features = ["derive"] }
 
 [[bin]]
-name = "enum_const"
-path = "fuzz_targets/enum_const.rs"
+name = "thisenum_const"
+path = "fuzz_targets/thisenum_const.rs"
 test = false
 doc = false
 
 [[bin]]
-name = "enum_const_each"
-path = "fuzz_targets/enum_const_each.rs"
+name = "thisenum_const_each"
+path = "fuzz_targets/thisenum_const_each.rs"
 test = false
 doc = false
