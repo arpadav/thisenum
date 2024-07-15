@@ -1,6 +1,6 @@
-//! # enum-const
+//! # thisenum
 //! 
-//! Assign constant literals to enum arms in Rust! What fun!
+//! The simplest way to assign constant literals to enum arms in Rust! What fun!
 //! 
 //! ```rust
 //! use thisenum::Const;
@@ -56,7 +56,7 @@
 //! 
 //! ## License
 //! 
-//! `enum-const` is released under the [MIT License](LICENSE) [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT).
+//! `thisenum` is released under the [MIT License](LICENSE) [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT).
 // --------------------------------------------------
 // external
 // --------------------------------------------------
