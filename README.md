@@ -22,7 +22,7 @@ enum ExifTag {
     #[value = b"\x01\x01"]
     ImageHeight,
     #[value = b"\x01\x02"]
-    BitsPerSamole,
+    BitsPerSample,
     #[value = b"\x01\x03"]
     Compression,
     #[value = b"\x01\x06"]
