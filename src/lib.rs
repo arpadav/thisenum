@@ -200,9 +200,13 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     // see deref comment above
     // --------------------------------------------------
-    let variant_par_eq = match deref {
+    let variant_par_eq_lhs = match deref {
         true => quote! { &self.value() == other },
         false => quote! { self.value() == other },
+    };
+    let variant_par_eq_rhs = match deref {
+        true => quote! { &other.value() == self },
+        false => quote! { other.value() == self },
     };
     // --------------------------------------------------
     // return
@@ -225,7 +229,13 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
         impl ::std::cmp::PartialEq<#type_name_raw> for #enum_name {
             #[inline]
             fn eq(&self, other: &#type_name_raw) -> bool {
-                #variant_par_eq
+                #variant_par_eq_lhs
+            }
+        }
+        impl ::std::cmp::PartialEq<#enum_name> for #type_name_raw {
+            #[inline]
+            fn eq(&self, other: &#enum_name) -> bool {
+                #variant_par_eq_rhs
             }
         }
     };
