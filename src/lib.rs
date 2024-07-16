@@ -208,6 +208,17 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
         true => quote! { &other.value() == self },
         false => quote! { other.value() == self },
     };
+    let into_impl = match deref {
+        false => quote! {
+            impl ::std::convert::Into<#type_name_raw> for #enum_name {
+                #[inline]
+                fn into(self) -> #type_name_raw {
+                    *self.value()
+                }
+            }
+        },
+        true => quote! { },
+    };
     // --------------------------------------------------
     // return
     // --------------------------------------------------
@@ -238,6 +249,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
                 #variant_par_eq_rhs
             }
         }
+        #into_impl
     };
     TokenStream::from(expanded)
 }
