@@ -169,7 +169,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     // generate the output tokens
     // --------------------------------------------------
-    let variant_match_arms = variants
+    let (variant_match_arms, variant_inv_match_arms): (Vec<_>, Vec<_>) = variants
         .iter()
         .map(|variant| {
             let variant_name = &variant.ident;
@@ -191,12 +191,14 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             // as a result, need to ensure we are removing / adding
             // the `&` symbol wherever necessary
             // ------------------------------------------------
-            match deref {
+            let vma = match deref {
                 true => quote! { #enum_name::#variant_name => #value, },
                 false => quote! { #enum_name::#variant_name => &#value, },
-            }
-        }
-    );
+            };
+            let vima = quote! { #value => Ok(#enum_name::#variant_name), };
+            (vma, vima)
+        })
+        .unzip();
     // --------------------------------------------------
     // see deref comment above
     // --------------------------------------------------
@@ -210,6 +212,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     };
     let into_impl = match deref {
         false => quote! {
+            #[automatically_derived]
             impl ::std::convert::Into<#type_name_raw> for #enum_name {
                 #[inline]
                 fn into(self) -> #type_name_raw {
@@ -223,6 +226,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // return
     // --------------------------------------------------
     let expanded = quote! {
+        #[automatically_derived]
         impl #enum_name {
             #[inline]
             /// Returns the value of the enum variant
@@ -237,12 +241,14 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        #[automatically_derived]
         impl ::std::cmp::PartialEq<#type_name_raw> for #enum_name {
             #[inline]
             fn eq(&self, other: &#type_name_raw) -> bool {
                 #variant_par_eq_lhs
             }
         }
+        #[automatically_derived]
         impl ::std::cmp::PartialEq<#enum_name> for #type_name_raw {
             #[inline]
             fn eq(&self, other: &#enum_name) -> bool {
@@ -250,6 +256,17 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             }
         }
         #into_impl
+        #[automatically_derived]
+        impl ::std::convert::TryFrom<#type_name_raw> for #enum_name {
+            type Error = ();
+            #[inline]
+            fn try_from(value: #type_name_raw) -> Result<Self, Self::Error> {
+                match value {
+                    #( #variant_inv_match_arms )*
+                    _ => Err(()),
+                }
+            }
+        }
     };
     TokenStream::from(expanded)
 }
