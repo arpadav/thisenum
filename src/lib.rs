@@ -111,10 +111,16 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     // generate the output tokens
     // --------------------------------------------------
+    // let mut any_args = false;
     let (variant_match_arms, variant_inv_match_arms): (Vec<_>, Vec<_>) = variants
         .iter()
         .map(|variant| {
             let variant_name = &variant.ident;
+            let num_args = match variant.fields {
+                syn::Fields::Named(syn::FieldsNamed { ref named, .. }) => named.len(),
+                syn::Fields::Unnamed(syn::FieldsUnnamed { ref unnamed, .. }) => unnamed.len(),
+                syn::Fields::Unit => 0,
+            };
             let value = match get_val(name.into(), &variant.attrs) {
                 Ok(value) => value,
                 Err(e) => panic!("{}", e),
@@ -133,14 +139,29 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             // as a result, need to ensure we are removing / adding
             // the `&` symbol wherever necessary
             // ------------------------------------------------
-            let vma = match deref {
-                true => quote! { #enum_name::#variant_name => #value, },
-                false => quote! { #enum_name::#variant_name => &#value, },
+            let args_tokens = match num_args {
+                0 => quote! {},
+                _ => {
+                    let args = (0..num_args).map(|_| quote! { _ });
+                    quote! { ( #(#args),* ) }
+                },
             };
-            let vima = quote! { #value => Ok(#enum_name::#variant_name), };
-            (vma, vima)
+            let vma = match deref {
+                true => quote! { #enum_name::#variant_name #args_tokens => #value, },
+                false => quote! { #enum_name::#variant_name #args_tokens => &#value, },
+            };
+            match num_args == 0 {
+                true => (vma, Some(quote! { #value => Ok(#enum_name::#variant_name), })),
+                false => (vma, None),
+            }
         })
         .unzip();
+    // --------------------------------------------------
+    // find if any of vima are None
+    // --------------------------------------------------
+    let any_args = variant_inv_match_arms
+        .iter()
+        .any(|vima| vima.is_none());
     // --------------------------------------------------
     // see deref comment above
     // --------------------------------------------------
@@ -155,6 +176,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     let into_impl = match deref {
         false => quote! {
             #[automatically_derived]
+            #[doc = concat!(" [`Into`] implementation for [`", stringify!(#enum_name), "`]")]
             impl ::std::convert::Into<#type_name_raw> for #enum_name {
                 #[inline]
                 fn into(self) -> #type_name_raw {
@@ -167,16 +189,16 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     // return
     // --------------------------------------------------
-    let expanded = quote! {
+    let mut expanded = quote! {
         #[automatically_derived]
         impl #enum_name {
             #[inline]
             /// Returns the value of the enum variant
             /// defined by [`Const`]
             /// 
-            /// # Return
+            /// # Returns
             /// 
-            #[doc = concat!("* [`&'static ", stringify!(#type_name), "`]")]
+            #[doc = concat!(" * [`&'static ", stringify!(#type_name), "`]")]
             pub fn value(&self) -> &'static #type_name {
                 match self {
                     #( #variant_match_arms )*
@@ -184,6 +206,14 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             }
         }
         #[automatically_derived]
+        #[doc = concat!(" [`PartialEq<", stringify!(#type_name_raw) ,">`] implementation for [`", stringify!(#enum_name), "`]")]
+        ///
+        #[doc = concat!(" This is the LHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
+        /// 
+        /// # Returns
+        /// 
+        /// * [`true`] if the type and the enum are equal
+        /// * [`false`] if the type and the enum are not equal
         impl ::std::cmp::PartialEq<#type_name_raw> for #enum_name {
             #[inline]
             fn eq(&self, other: &#type_name_raw) -> bool {
@@ -191,6 +221,14 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             }
         }
         #[automatically_derived]
+        #[doc = concat!(" [`PartialEq<", stringify!(#enum_name) ,">`] implementation for [`", stringify!(#type_name_raw), "`]")]
+        /// 
+        #[doc = concat!(" This is the RHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
+        /// 
+        /// # Returns
+        /// 
+        /// * [`true`] if the enum and the type are equal
+        /// * [`false`] if the enum and the type are not equal
         impl ::std::cmp::PartialEq<#enum_name> for #type_name_raw {
             #[inline]
             fn eq(&self, other: &#enum_name) -> bool {
@@ -198,18 +236,34 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             }
         }
         #into_impl
-        #[automatically_derived]
-        impl ::std::convert::TryFrom<#type_name_raw> for #enum_name {
-            type Error = ();
-            #[inline]
-            fn try_from(value: #type_name_raw) -> Result<Self, Self::Error> {
-                match value {
-                    #( #variant_inv_match_arms )*
-                    _ => Err(()),
+    };
+    if !any_args {
+        let variant_inv_match_arms = variant_inv_match_arms.into_iter().map(|vima| vima.unwrap());
+        expanded = quote! {
+            #expanded
+            #[automatically_derived]
+            #[doc = concat!(" [`TryFrom`] implementation for [`", stringify!(#enum_name), "`]")]
+            ///
+            /// This is able to be derived since none of the Arms of the Enum had
+            /// any arguments. If that is the case, this implementation is 
+            /// non-existent.
+            /// 
+            /// # Returns
+            /// 
+            /// * [`Ok(T)`] where `T` is the enum variant
+            /// * [`Err(())`] if the conversion fails
+            impl ::std::convert::TryFrom<#type_name_raw> for #enum_name {
+                type Error = ();
+                #[inline]
+                fn try_from(value: #type_name_raw) -> Result<Self, Self::Error> {
+                    match value {
+                        #( #variant_inv_match_arms )*
+                        _ => Err(()),
+                    }
                 }
             }
-        }
-    };
+        };
+    }
     TokenStream::from(expanded)
 }
 
@@ -333,6 +387,8 @@ pub fn thisenum_const_each(input: TokenStream) -> TokenStream {
     // return
     // ------------------------------------------------
     let expanded = quote! {
+        #[automatically_derived]
+        #[doc = concat!(" [`ConstEach`] implementation for [`", stringify!(#enum_name), "`]")]
         impl #enum_name {
             pub fn value<T: 'static>(&self) -> Option<&'static T> {
                 match self {

@@ -25,7 +25,7 @@ enum TestStr {
 #[armtype(&[u8])]
 enum TestU8Slice4 {
     #[value = b"\x7F\x7F\x7F\x7F\x67"]
-    Arm1,
+    Arm1(u8, u8, u8, u8),
     #[value = b"\x3B\x3B\x3B\x3B"]
     Arm2,
 }
@@ -203,4 +203,18 @@ fn main3() {
     assert_eq!(CustomEnum::C.value::<f32>(), Some(3.14).as_ref());
     // or on failure
     assert!(CustomEnum::C.value::<i32>().is_none());
+
+    // let my_enum = MyEnum2::Variant2(0x7F);
+    // let my_enum2 = MyEnum2::Variant3("foo".to_string(), (3.14, -0x7F));
+    // match my_enum2 {
+    //     MyEnum2::Variant2(x) => assert_eq!(x, 0x7F),
+    //     MyEnum2::Variant3(_) => assert_eq!(x, "foo".to_string()),
+    //     _ => panic!("should not happen"),
+    // }
 }
+
+// enum MyEnum2 {
+//     Variant1,
+//     Variant2(u8),
+//     Variant3(String, (f32, i16)),
+// }
