@@ -17,7 +17,7 @@ full = [ "eq" ]
 
 [dependencies]
 thiserror = "1.0"
-thisenum-impl = { version = "0.2", path = "impl" }
+thisenum-impl = { version = "0.2.1", path = "impl" }
 
 [dev-dependencies]
 
