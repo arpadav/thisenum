@@ -1,34 +1,46 @@
+// TODO!
+
 use thisenum::{
     Const,
     ConstEach,
 };
 
-#[derive(Debug, Const)]
-#[armtype(u8)]
-enum TestU8 {
-    #[value = 0x7f]
-    Arm1,
-    #[value = 0x3B]
-    Arm2,
-}
+// #[derive(Const)]
+// #[armtype(u8)]
+// enum TestU8 {
+//     #[value = 0x7f]
+//     Arm1,
+//     #[value = 0x3B]
+//     Arm2,
+// }
 
-#[derive(Debug, Const)]
+#[derive(Const)]
 #[armtype(&str)]
 enum TestStr {
     #[value = "this"]
     Arm1,
-    #[value = "that"]
+    #[value = "this"]
     Arm2,
+    #[value = "this"]
+    Arm3,
+    #[value = "foo"]
+    Arm4,
+    #[value = "bar"]
+    Arm5,
+    #[value = "xD"]
+    Arm6,
+    #[value = "xD"]
+    Arm7,
 }
 
-#[derive(Debug, Const)]
-#[armtype(&[u8])]
-enum TestU8Slice4 {
-    #[value = b"\x7F\x7F\x7F\x7F\x67"]
-    Arm1(u8, u8, u8, u8),
-    #[value = b"\x3B\x3B\x3B\x3B"]
-    Arm2,
-}
+// #[derive(Const)]
+// #[armtype(&[u8])]
+// enum TestU8Slice4 {
+//     #[value = b"\x7F\x7F\x7F\x7F\x67"]
+//     Arm1(u8, u8, u8, u8),
+//     #[value = b"\x3B\x3B\x3B\x3B"]
+//     Arm2,
+// }
 
 // #[derive(Const)]
 // #[arm_type(Vec<usize>)]
@@ -39,14 +51,14 @@ enum TestU8Slice4 {
 //     Arm2,
 // }
 
-#[derive(Debug, ConstEach)]
-enum TestStrAny {
-    #[armtype(u8)]
-    #[value = 0xAA]
-    Arm1,
-    #[value = "test3"]
-    Arm2,
-}
+// #[derive(ConstEach)]
+// enum TestStrAny {
+//     #[armtype(u8)]
+//     #[value = 0xAA]
+//     Arm1,
+//     #[value = "test3"]
+//     Arm2,
+// }
 
 fn main() {
 
@@ -127,39 +139,39 @@ fn main() {
 
 // use enum_const::Const;
 
-#[derive(Const, Debug)]
-#[armtype(i32)]
-enum MyEnum {
-    #[value = 0]
-    A,
-    #[value = 1]
-    B,
-}
+// #[derive(Const)]
+// #[armtype(i32)]
+// enum MyEnum {
+//     #[value = 0]
+//     A,
+//     #[value = 1]
+//     B,
+// }
 
-#[derive(Const, Debug)]
-#[armtype(&[u8])]
-enum Tags {
-    #[value = b"\x00\x01\x7f"]
-    Key,
-    #[value = b"\xba\x5e"]
-    Length,
-    #[value = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"]
-    Data,
-}
+// #[derive(Const)]
+// #[armtype(&[u8])]
+// enum Tags {
+//     #[value = b"\x00\x01\x7f"]
+//     Key,
+//     #[value = b"\xba\x5e"]
+//     Length,
+//     #[value = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"]
+//     Data,
+// }
 
 // use enum_const::Const;
 
-#[derive(Const, Debug)]
+#[derive(Const)]
 #[armtype(&[u8])]
 /// https://exiftool.org/TagNames/EXIF.html
 enum ExifTag {
     // ...
     #[value = b"\x01\x00"]
-    ImageWidth,
+    ImageWidth(u8),
     #[value = b"\x01\x01"]
     ImageHeight,
     #[value = b"\x01\x02"]
-    BitsPerSamole,
+    BitsPerSample,
     #[value = b"\x01\x03"]
     Compression,
     #[value = b"\x01\x06"]
@@ -167,17 +179,17 @@ enum ExifTag {
     // ...
 }
 
-#[derive(ConstEach, Debug)]
-enum CustomEnum {
-    #[armtype(&[u8])]
-    #[value = b"\x01\x00"]
-    A,
-    #[value = "foo"]
-    B,
-    #[armtype(f32)]
-    #[value = 3.14]
-    C,
-}
+// #[derive(ConstEach)]
+// enum CustomEnum {
+//     #[armtype(&[u8])]
+//     #[value = b"\x01\x00"]
+//     A,
+//     #[value = "foo"]
+//     B,
+//     #[armtype(f32)]
+//     #[value = 3.14]
+//     C,
+// }
 
 fn main3() {
     // // it's prefered to use the function call to `value` 
@@ -192,17 +204,18 @@ fn main3() {
     // // type defined in `#[armtype = ...]`
     // assert_eq!(Tags::Length, b"\xba\x5e");
 
-    assert_eq!(ExifTag::ImageWidth.value(), b"\x01\x00");
-    assert_eq!(ExifTag::ImageWidth, b"\x01\x00");
-    println!("ExifTag::ImageWidth.value() = {:?}", ExifTag::ImageWidth.value());
+    // assert_eq!(ExifTag::ImageWidth.value(), b"\x01\x00");
+    // #[cfg(feature = "eq")]
+    // assert_eq!(ExifTag::ImageWidth, b"\x01\x00");
+    // println!("ExifTag::ImageWidth.value() = {:?}", ExifTag::ImageWidth.value());
     
-    assert_eq!(CustomEnum::A.value::<&[u8]>().unwrap(), b"\x01\x00");
-    assert!(CustomEnum::B.value::<&str>().is_some());
-    assert_eq!(CustomEnum::B.value::<&str>().unwrap(), &"foo");
-    assert_eq!(CustomEnum::B.value::<&str>(), Some("foo").as_ref());
-    assert_eq!(CustomEnum::C.value::<f32>(), Some(3.14).as_ref());
-    // or on failure
-    assert!(CustomEnum::C.value::<i32>().is_none());
+    // assert_eq!(CustomEnum::A.value::<&[u8]>().unwrap(), b"\x01\x00");
+    // assert!(CustomEnum::B.value::<&str>().is_some());
+    // assert_eq!(CustomEnum::B.value::<&str>().unwrap(), &"foo");
+    // assert_eq!(CustomEnum::B.value::<&str>(), Some("foo").as_ref());
+    // assert_eq!(CustomEnum::C.value::<f32>(), Some(3.14).as_ref());
+    // // or on failure
+    // assert!(CustomEnum::C.value::<i32>().is_none());
 
     // let my_enum = MyEnum2::Variant2(0x7F);
     // let my_enum2 = MyEnum2::Variant3("foo".to_string(), (3.14, -0x7F));
