@@ -5,45 +5,49 @@ use thisenum::{
     ConstEach,
 };
 
-// #[derive(Const)]
-// #[armtype(u8)]
-// enum TestU8 {
-//     #[value = 0x7f]
-//     Arm1,
-//     #[value = 0x3B]
-//     Arm2,
-// }
+#[derive(Const)]
+#[armtype(u8)]
+enum TestU8 {
+    #[value = 0x7f]
+    Arm1,
+    #[value = 0x3B]
+    Arm2,
+}
 
 #[derive(Const)]
-#[armtype(&str)]
+#[armtype(&[u8])]
 enum TestStr {
-    #[value = "this"]
+    #[value = b"this"]
     Arm1,
-    #[value = "this"]
+    #[value = b"this"]
     Arm2,
-    #[value = "this"]
+    #[value = b"this"]
     Arm3,
-    #[value = "foo"]
+    #[value = b"foo"]
     Arm4,
-    #[value = "bar"]
+    #[value = b"bar"]
     Arm5,
-    #[value = "xD"]
+    #[value = b"xD"]
     Arm6,
-    #[value = "xD"]
+    #[value = b"xD"]
     Arm7,
+    #[value = b"NA"]
+    ArmBruh,
+    #[value = b"NA"]
+    ArmBar,
+}
+
+#[derive(Const)]
+#[armtype(&[u8])]
+enum TestU8Slice4 {
+    #[value = b"\x7F\x7F\x7F\x7F\x67"]
+    Arm1(u8, u8, u8, u8),
+    #[value = b"\x3B\x3B\x3B\x3B"]
+    Arm2,
 }
 
 // #[derive(Const)]
-// #[armtype(&[u8])]
-// enum TestU8Slice4 {
-//     #[value = b"\x7F\x7F\x7F\x7F\x67"]
-//     Arm1(u8, u8, u8, u8),
-//     #[value = b"\x3B\x3B\x3B\x3B"]
-//     Arm2,
-// }
-
-// #[derive(Const)]
-// #[arm_type(Vec<usize>)]
+// #[armtype(Vec<usize>)]
 // enum TestVecu8 {
 //     #[value = vec![1, 2, 3]]
 //     Arm1,
@@ -51,14 +55,14 @@ enum TestStr {
 //     Arm2,
 // }
 
-// #[derive(ConstEach)]
-// enum TestStrAny {
-//     #[armtype(u8)]
-//     #[value = 0xAA]
-//     Arm1,
-//     #[value = "test3"]
-//     Arm2,
-// }
+#[derive(ConstEach)]
+enum TestStrAny {
+    #[armtype(u8)]
+    #[value = 0xAA]
+    Arm1,
+    #[value = "test3"]
+    Arm2,
+}
 
 fn main() {
 
@@ -179,17 +183,17 @@ enum ExifTag {
     // ...
 }
 
-// #[derive(ConstEach)]
-// enum CustomEnum {
-//     #[armtype(&[u8])]
-//     #[value = b"\x01\x00"]
-//     A,
-//     #[value = "foo"]
-//     B,
-//     #[armtype(f32)]
-//     #[value = 3.14]
-//     C,
-// }
+#[derive(ConstEach)]
+enum CustomEnum {
+    #[armtype(&[u8])]
+    #[value = b"\x01\x00"]
+    A,
+    #[value = "foo"]
+    B,
+    #[armtype(f32)]
+    #[value = 3.14]
+    C,
+}
 
 fn main3() {
     // // it's prefered to use the function call to `value` 

@@ -1,4 +1,8 @@
-# 0.2.0
+## 0.2.1
+
+* Quick bug fix. Value type must implement `Debug`, which all constant literals do.
+
+## 0.2.0
 
 * Automatically derive `Debug`: `format!("MyEnum::Arm1: {}", &self.value())`
 * Optionally derive `PartialEq` using the `eq` feature (e.g.: `thisenum = { version = "0.2.0", features = ["eq"] }`)

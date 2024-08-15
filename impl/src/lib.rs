@@ -223,11 +223,9 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
         .iter()
         .map(|(_, pos)| match pos.len() {
             ..=1 => quote! {},
-            _ => {        
-                println!("pos: {:?}", pos);
+            _ => {
                 let val = values[pos[0]].clone();
-                println!("val: {:?}", val);
-                quote! { #val => Err(::thisenum::Error::UnreachableValue(#val.into())), }
+                quote! { #val => Err(::thisenum::Error::UnreachableValue(format!("{:?}", #val))), }
             }
         })
         .collect::<Vec<_>>();
