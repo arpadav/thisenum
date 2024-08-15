@@ -3,14 +3,13 @@ name = "thisenum-impl"
 version = "0.1.3"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 license = "MIT"
-description = "Assign constant literals to enum arms."
+description = "General implementation of `thisenum`."
 repository = "https://github.com/arpadav/thisenum"
 documentation = "https://docs.rs/thisenum"
 readme = "README.md"
 keywords = ["enum", "const", "literals", "macro", "parsing"]
 categories = ["parsing", "memory-management"]
 edition = "2021"
-publish = false
 
 [features]
 eq = []
