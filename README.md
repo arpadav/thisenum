@@ -31,6 +31,7 @@ enum ExifTag {
 }
 
 assert_eq!(ExifTag::ImageWidth.value(), b"\x01\x00");
+#[cfg(feature = "eq")]
 assert_eq!(ExifTag::ImageWidth, b"\x01\x00");
 ```
 
