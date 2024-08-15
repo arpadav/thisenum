@@ -1,7 +1,7 @@
-# 0.3.0
+# 0.2.0
 
 * Automatically derive `Debug`: `format!("MyEnum::Arm1: {}", &self.value())`
-* Optionally derive `PartialEq` using the `eq` feature (e.g.: `thisenum = { version = "0.3.0", features = ["eq"] }`)
+* Optionally derive `PartialEq` using the `eq` feature (e.g.: `thisenum = { version = "0.2.0", features = ["eq"] }`)
 * New errors, when value's are not unique. Previously this would expand into:
 
 ```rust

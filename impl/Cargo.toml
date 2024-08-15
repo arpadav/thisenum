@@ -1,6 +1,6 @@
 [package]
 name = "thisenum-impl"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 license = "MIT"
 description = "General implementation of `thisenum`."
