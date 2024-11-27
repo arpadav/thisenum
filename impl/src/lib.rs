@@ -98,7 +98,7 @@ enum Error {
 /// }
 /// ```
 pub fn thisenum_const(input: TokenStream) -> TokenStream {
-    let name = "Const";
+    const NAME: &str = "Const";
     let input = parse_macro_input!(input as DeriveInput);
     // --------------------------------------------------
     // extract the name, variants, and values
@@ -106,25 +106,25 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     let enum_name = &input.ident;
     let variants = match input.data {
         Data::Enum(DataEnum { variants, .. }) => variants,
-        _ => panic!("{}", Error::DeriveForNonEnum(name.into())),
+        _ => panic!("{}", Error::DeriveForNonEnum(NAME.into())),
     };
     // --------------------------------------------------
     // extract the type
     // --------------------------------------------------
     let (type_name, deref) = match get_deref_type(&input.attrs) {
         Some((type_name, deref)) => (type_name, deref),
-        None => panic!("{}", Error::MissingArmType("applied to enum".into(), name.into())),
+        None => panic!("{}", Error::MissingArmType("applied to enum".into(), NAME.into())),
     };
     let type_name_raw = match get_type(&input.attrs) {
         Some(type_name_raw) => type_name_raw,
-        None => panic!("{}", Error::MissingArmType("applied to enum".into(), name.into())),
+        None => panic!("{}", Error::MissingArmType("applied to enum".into(), NAME.into())),
     };
     // --------------------------------------------------
     // get unique assigned values
     // --------------------------------------------------
     let values = variants
         .iter()
-        .map(|variant| get_val(name.into(), &variant.attrs))
+        .map(|variant| get_val(NAME.into(), &variant.attrs))
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
     let values_string = values.iter().map(|v| v.to_string()).collect::<Vec<_>>();
@@ -151,7 +151,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
                 syn::Fields::Unnamed(syn::FieldsUnnamed { ref unnamed, .. }) => unnamed.len(),
                 syn::Fields::Unit => 0,
             };
-            let value = match get_val(name.into(), &variant.attrs) {
+            let value = match get_val(NAME.into(), &variant.attrs) {
                 Ok(value) => value,
                 Err(e) => panic!("{}", e),
             };
@@ -184,7 +184,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             // ------------------------------------------------
             // debug arms implementation
             // ------------------------------------------------
-            let debug_arm = match get_val(name.into(), &variant.attrs) {
+            let debug_arm = match get_val(NAME.into(), &variant.attrs) {
                 Ok(_) => quote! { #enum_name::#variant_name #args_tokens => write!(f, concat!(stringify!(#enum_name), "::", stringify!(#variant_name), ": {:?}"), self.value()), },
                 Err(e) => panic!("{}", e),
             };
@@ -286,7 +286,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             /// # Returns
             /// 
             #[doc = concat!(" * [`&'static ", stringify!(#type_name), "`]")]
-            pub fn value(&self) -> &'static #type_name {
+            pub const fn value(&self) -> &'static #type_name {
                 match self {
                     #( #variant_match_arms )*
                 }
@@ -440,7 +440,7 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
 /// }
 /// ```
 pub fn thisenum_const_each(input: TokenStream) -> TokenStream {
-    let name = "ConstEach";
+    const NAME: &str = "ConstEach";
     let input = parse_macro_input!(input as DeriveInput);
     // --------------------------------------------------
     // extract the name, variants, and values
@@ -448,14 +448,14 @@ pub fn thisenum_const_each(input: TokenStream) -> TokenStream {
     let enum_name = &input.ident;
     let variants = match input.data {
         Data::Enum(DataEnum { variants, .. }) => variants,
-        _ => panic!("{}", Error::DeriveForNonEnum(name.into())),
+        _ => panic!("{}", Error::DeriveForNonEnum(NAME.into())),
     };
     // --------------------------------------------------
     // generate the output tokens
     // --------------------------------------------------
     let variant_code = variants.iter().map(|variant| {
         let variant_name = &variant.ident;
-        match (get_type(&variant.attrs), get_val(name.into(), &variant.attrs)) {
+        match (get_type(&variant.attrs), get_val(NAME.into(), &variant.attrs)) {
             // ------------------------------------------------
             // if type is specified, use it
             // ------------------------------------------------
