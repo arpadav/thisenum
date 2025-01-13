@@ -133,7 +133,8 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // generate the output tokens
     // --------------------------------------------------
     let (
-        debug_arms,
+        // #[cfg(feature = "debug")]
+        _debug_arms,
         variant_match_arms,
         mut variant_inv_match_arms
     ) = variants
@@ -252,14 +253,6 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
     // --------------------------------------------------
     // see deref comment above
     // --------------------------------------------------
-    let variant_par_eq_lhs = match deref {
-        true => quote! { &self.value() == other },
-        false => quote! { self.value() == other },
-    };
-    let variant_par_eq_rhs = match deref {
-        true => quote! { &other.value() == self },
-        false => quote! { other.value() == self },
-    };
     let into_impl = match deref {
         false => quote! {
             #[automatically_derived]
@@ -273,9 +266,6 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
         },
         true => quote! { },
     };
-    // --------------------------------------------------
-    // return
-    // --------------------------------------------------
     let mut expanded = quote! {
         #[automatically_derived]
         impl #enum_name {
@@ -292,8 +282,38 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        #into_impl
+    };
+
+    #[cfg(feature = "debug")] {
+    
+    expanded = quote! {
+        #expanded
         #[automatically_derived]
-        #[cfg(feature = "eq")]
+        #[doc = concat!(" [`Debug`] implementation for [`", stringify!(#enum_name), "`]")]
+        impl ::std::fmt::Debug for #enum_name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                match self {
+                    #( #_debug_arms )*
+                }
+            }
+        }
+    }}
+
+    #[cfg(feature = "eq")] {
+    
+    let variant_par_eq_lhs = match deref {
+        true => quote! { &self.value() == other },
+        false => quote! { self.value() == other },
+    };
+    let variant_par_eq_rhs = match deref {
+        true => quote! { &other.value() == self },
+        false => quote! { other.value() == self },
+    };
+
+    expanded = quote! {
+        #expanded
+        #[automatically_derived]
         #[doc = concat!(" [`PartialEq<", stringify!(#type_name_raw) ,">`] implementation for [`", stringify!(#enum_name), "`]")]
         ///
         #[doc = concat!(" This is the LHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
@@ -309,7 +329,6 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             }
         }
         #[automatically_derived]
-        #[cfg(feature = "eq")]
         #[doc = concat!(" [`PartialEq<", stringify!(#enum_name) ,">`] implementation for [`", stringify!(#type_name_raw), "`]")]
         /// 
         #[doc = concat!(" This is the RHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
@@ -324,17 +343,8 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
                 #variant_par_eq_rhs
             }
         }
-        #[automatically_derived]
-        #[doc = concat!(" [`Debug`] implementation for [`", stringify!(#enum_name), "`]")]
-        impl ::std::fmt::Debug for #enum_name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                match self {
-                    #( #debug_arms )*
-                }
-            }
-        }
-        #into_impl
-    };
+    }}
+
     let variant_inv_match_arms = variant_inv_match_arms.into_iter().filter(|v| v.is_some()).map(|v| v.unwrap());
     expanded = quote! {
         #expanded
@@ -362,6 +372,9 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
             }
         }
     };
+    // --------------------------------------------------
+    // return
+    // --------------------------------------------------
     TokenStream::from(expanded)
 }
 
