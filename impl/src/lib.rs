@@ -285,65 +285,64 @@ pub fn thisenum_const(input: TokenStream) -> TokenStream {
         #into_impl
     };
 
-    #[cfg(feature = "debug")] {
-    
-    expanded = quote! {
-        #expanded
-        #[automatically_derived]
-        #[doc = concat!(" [`Debug`] implementation for [`", stringify!(#enum_name), "`]")]
-        impl ::std::fmt::Debug for #enum_name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                match self {
-                    #( #_debug_arms )*
+    if cfg!(feature = "debug") {
+        expanded = quote! {
+            #expanded
+            #[automatically_derived]
+            #[doc = concat!(" [`Debug`] implementation for [`", stringify!(#enum_name), "`]")]
+            impl ::std::fmt::Debug for #enum_name {
+                fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    match self {
+                        #( #_debug_arms )*
+                    }
                 }
             }
-        }
-    }}
+        };
+    }
 
-    #[cfg(feature = "eq")] {
-    
-    let variant_par_eq_lhs = match deref {
-        true => quote! { &self.value() == other },
-        false => quote! { self.value() == other },
-    };
-    let variant_par_eq_rhs = match deref {
-        true => quote! { &other.value() == self },
-        false => quote! { other.value() == self },
-    };
-
-    expanded = quote! {
-        #expanded
-        #[automatically_derived]
-        #[doc = concat!(" [`PartialEq<", stringify!(#type_name_raw) ,">`] implementation for [`", stringify!(#enum_name), "`]")]
-        ///
-        #[doc = concat!(" This is the LHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
-        /// 
-        /// # Returns
-        /// 
-        /// * [`true`] if the type and the enum are equal
-        /// * [`false`] if the type and the enum are not equal
-        impl ::std::cmp::PartialEq<#type_name_raw> for #enum_name {
-            #[inline]
-            fn eq(&self, other: &#type_name_raw) -> bool {
-                #variant_par_eq_lhs
+    if cfg!(feature = "eq") {
+        let variant_par_eq_lhs = match deref {
+            true => quote! { &self.value() == other },
+            false => quote! { self.value() == other },
+        };
+        let variant_par_eq_rhs = match deref {
+            true => quote! { &other.value() == self },
+            false => quote! { other.value() == self },
+        };
+        expanded = quote! {
+            #expanded
+            #[automatically_derived]
+            #[doc = concat!(" [`PartialEq<", stringify!(#type_name_raw) ,">`] implementation for [`", stringify!(#enum_name), "`]")]
+            ///
+            #[doc = concat!(" This is the LHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
+            /// 
+            /// # Returns
+            /// 
+            /// * [`true`] if the type and the enum are equal
+            /// * [`false`] if the type and the enum are not equal
+            impl ::std::cmp::PartialEq<#type_name_raw> for #enum_name {
+                #[inline]
+                fn eq(&self, other: &#type_name_raw) -> bool {
+                    #variant_par_eq_lhs
+                }
             }
-        }
-        #[automatically_derived]
-        #[doc = concat!(" [`PartialEq<", stringify!(#enum_name) ,">`] implementation for [`", stringify!(#type_name_raw), "`]")]
-        /// 
-        #[doc = concat!(" This is the RHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
-        /// 
-        /// # Returns
-        /// 
-        /// * [`true`] if the enum and the type are equal
-        /// * [`false`] if the enum and the type are not equal
-        impl ::std::cmp::PartialEq<#enum_name> for #type_name_raw {
-            #[inline]
-            fn eq(&self, other: &#enum_name) -> bool {
-                #variant_par_eq_rhs
+            #[automatically_derived]
+            #[doc = concat!(" [`PartialEq<", stringify!(#enum_name) ,">`] implementation for [`", stringify!(#type_name_raw), "`]")]
+            /// 
+            #[doc = concat!(" This is the RHS of the [`PartialEq`] implementation between [`", stringify!(#enum_name), "`] and [`", stringify!(#type_name_raw), "`]")]
+            /// 
+            /// # Returns
+            /// 
+            /// * [`true`] if the enum and the type are equal
+            /// * [`false`] if the enum and the type are not equal
+            impl ::std::cmp::PartialEq<#enum_name> for #type_name_raw {
+                #[inline]
+                fn eq(&self, other: &#enum_name) -> bool {
+                    #variant_par_eq_rhs
+                }
             }
-        }
-    }}
+        };
+    }
 
     let variant_inv_match_arms = variant_inv_match_arms.into_iter().filter(|v| v.is_some()).map(|v| v.unwrap());
     expanded = quote! {
