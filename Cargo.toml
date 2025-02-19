@@ -1,6 +1,6 @@
 [package]
 name = "thisenum"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 license = "MIT"
 description = "Assign constant literals to enum arms."
@@ -18,7 +18,7 @@ full = [ "eq", "debug" ]
 
 [dependencies]
 thiserror = "2.0"
-thisenum-impl = { version = "0.2.1", path = "impl" }
+thisenum-impl = { version = "0.2.2", path = "impl" }
 
 [dev-dependencies]
 
