@@ -164,8 +164,10 @@ fn main() {
 /// https://exiftool.org/TagNames/EXIF.html
 enum ExifTag {
     // ...
-    // #[value = b"\x01\x00"]
-    // ImageWidth(u8),
+    // #[value = b"\x01\xff"]
+    // ImageWidth2(T),
+    #[value = b"\x01\x00"]
+    ImageWidth(u8),
     #[value = b"\x01\x01"]
     ImageHeight,
     #[value = b"\x01\x02"]
